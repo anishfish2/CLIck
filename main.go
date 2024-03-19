@@ -12,16 +12,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type Post struct {
-	Id     int    `json:"id"`
-	Object  string `json:"object"`
-	Created   int `json:"created"`
-	Model int    `json:"model"`
-	SystemFingerprint string `json:"system_fingerprint"`
-	Choices []string `json:"choices"`
-	Usage []string `json:"usage"`
-}
-
 func main() {
 
 	query := flag.String("query", "Code broken :( y?", "The error you are facing.")
@@ -78,7 +68,7 @@ func main() {
 			
 			resBody, err := io.ReadAll(res.Body)
 			if err != nil {
-				fmt.Printf("impossible to read all body of response: %s", err)
+				fmt.Printf("impossible to read response: %s", err)
 			}
 			fmt.Printf("res body: %s", string(resBody))
 		}
