@@ -48,7 +48,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		err = m.Command([]string{"loadfile", os.Args[1]})
+		err = m.Command([]string{"loadfile", *video_url})
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
