@@ -10,18 +10,18 @@ import (
 	"io"
 
 	"github.com/joho/godotenv"
-	"github.com/gen2brain/go-mpv"
+	//"github.com/gen2brain/go-mpv"
 )
 
 func main() {
 
 	query := flag.String("query", "Code broken :( y?", "The error you are facing.")
 	ask := flag.Bool("ask", false, "Whether to ask ChatGPT for help.")
-	video_url := flag.String("video_url", "", "The URL of the video that was suggested by ChatGPT.")
+	video_topic := ""
 
 	flag.Parse()
 
-	if flag.NArg() == 0 {
+
 		fmt.Println("The question is: " + *query)
 
 		load_env := godotenv.Load(".env")
@@ -31,9 +31,6 @@ func main() {
 			return
 		}
 		
-
-
-
 		if *ask {
 			
 			url := "https://api.openai.com/v1/chat/completions"
@@ -72,10 +69,27 @@ func main() {
 			defer res.Body.Close()
 			
 			resBody, err := io.ReadAll(res.Body)
+
+
 			if err != nil {
 				fmt.Printf("impossible to read response: %s", err)
 			}
-			fmt.Printf("res body: %s", string(resBody))
-		}
+
+			var responseBody map[string]interface{}
+			err = json.Unmarshal(resBody, &responseBody)
+			if err != nil {
+				fmt.Printf("Error decoding JSON response: %s", err)
+				return
+			}
+
+			choices := responseBody["choices"].([]interface{})
+			if len(choices) > 0 {
+				message := choices[0].(map[string]interface{})["message"].(map[string]interface{})
+				content := message["content"].(string)
+				video_topic = content
+			}
+
+			fmt.Printf("res body: %s", video_topic)
+
 	}
 }
