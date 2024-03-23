@@ -17,6 +17,7 @@ func main() {
 
 	query := flag.String("query", "Code broken :( y?", "The error you are facing.")
 	ask := flag.Bool("ask", false, "Whether to ask ChatGPT for help.")
+	display := flag.Bool("display", true, "Whether to display the video")
 	video_topic := ""
 
 	flag.Parse()
@@ -90,6 +91,11 @@ func main() {
 			}
 
 			fmt.Printf("res body: %s", video_topic)
+
+			if *display {
+
+
+			}
 
 	}
 }
