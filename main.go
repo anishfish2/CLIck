@@ -8,9 +8,8 @@ import (
 	"net/http"
 	"os"
 	"io"
-
+	"os/exec"
 	"github.com/joho/godotenv"
-	//"github.com/gen2brain/go-mpv"
 )
 
 func main() {
@@ -21,81 +20,82 @@ func main() {
 	video_topic := ""
 
 	flag.Parse()
+	load_env := godotenv.Load(".env")
 
+	if load_env != nil {
+		fmt.Println("Error loading .env file", load_env)
+		return
+	}
+	
+	if *ask {
+		
+		url := "https://api.openai.com/v1/chat/completions"
 
-		fmt.Println("The question is: " + *query)
+		body := map[string]interface{}{
+			"model": "gpt-4",
+			"messages": []map[string]string{
+				{
+					"role":    "user",
+					"content": fmt.Sprintf("I have this question: %s. Can you give a search phrase to find a YouTube video to help me fix it", *query),
+				},
+			},
+		}
 
-		load_env := godotenv.Load(".env")
-
-		if load_env != nil {
-			fmt.Println("Error loading .env file", load_env)
+		jsonBody, err := json.Marshal(body)
+		if err != nil {
+			fmt.Println("Error encoding JSON:", err)
 			return
 		}
+
+		req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
+
+		req.Header = http.Header{
+			"Content-Type": {"application/json"},
+			"Authorization": {"Bearer " + os.Getenv("OPENAI_KEY")},
+		}
+
+		client := &http.Client{}
+
+		res, err := client.Do(req)
+
+		if err != nil {
+			panic(err)
+		}
+
+		defer res.Body.Close()
 		
-		if *ask {
-			
-			url := "https://api.openai.com/v1/chat/completions"
+		resBody, err := io.ReadAll(res.Body)
 
-			body := map[string]interface{}{
-				"model": "gpt-4",
-				"messages": []map[string]string{
-					{
-						"role":    "user",
-						"content": fmt.Sprintf("I have this question: %s. Can you give a search phrase to find a YouTube video to help me fix it", *query),
-					},
-				},
-			}
 
-			jsonBody, err := json.Marshal(body)
+		if err != nil {
+			fmt.Printf("impossible to read response: %s", err)
+		}
+
+		var responseBody map[string]interface{}
+		err = json.Unmarshal(resBody, &responseBody)
+		if err != nil {
+			fmt.Printf("Error decoding JSON response: %s", err)
+			return
+		}
+
+		choices := responseBody["choices"].([]interface{})
+		if len(choices) > 0 {
+			message := choices[0].(map[string]interface{})["message"].(map[string]interface{})
+			content := message["content"].(string)
+			video_topic = content
+		}
+
+		fmt.Printf("Search Query: %s", video_topic)
+
+
+		if *display {
+			cmd := exec.Command("mpv", "https://www.youtube.com/watch?v=4W6PszUFPsM")
+
+			err := cmd.Run()
 			if err != nil {
-				fmt.Println("Error encoding JSON:", err)
+				fmt.Println("Error playing video:", err)
 				return
 			}
-
-			req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
-
-			req.Header = http.Header{
-				"Content-Type": {"application/json"},
-				"Authorization": {"Bearer " + os.Getenv("OPENAI_KEY")},
-			}
-
-			client := &http.Client{}
-
-			res, err := client.Do(req)
-
-			if err != nil {
-				panic(err)
-			}
-
-			defer res.Body.Close()
-			
-			resBody, err := io.ReadAll(res.Body)
-
-
-			if err != nil {
-				fmt.Printf("impossible to read response: %s", err)
-			}
-
-			var responseBody map[string]interface{}
-			err = json.Unmarshal(resBody, &responseBody)
-			if err != nil {
-				fmt.Printf("Error decoding JSON response: %s", err)
-				return
-			}
-
-			choices := responseBody["choices"].([]interface{})
-			if len(choices) > 0 {
-				message := choices[0].(map[string]interface{})["message"].(map[string]interface{})
-				content := message["content"].(string)
-				video_topic = content
-			}
-
-			fmt.Printf("res body: %s", video_topic)
-
-			if *display {
-
-
-			}
-
+		}
 	}
 }
