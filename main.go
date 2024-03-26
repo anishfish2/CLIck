@@ -87,6 +87,8 @@ func main() {
 
 		fmt.Printf("Search Query: %s", video_topic)
 
+		//Youtube API search query -> get top result url
+		
 
 		if *display {
 			cmd := exec.Command("mpv", "https://www.youtube.com/watch?v=4W6PszUFPsM")
