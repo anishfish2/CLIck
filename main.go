@@ -20,7 +20,7 @@ func main() {
 
 	//Define Flags
 	query := flag.String("query", "Code broken :( y?", "The error you are facing.")
-	//answer := flag.Bool("ask", true, "Whether to ask ChatGPT for help.")
+	answer := flag.Bool("ask", true, "Whether to ask ChatGPT for help.")
 	video := flag.Bool("video", false, "Whether to display the video")
 	video_topic := ""
 
@@ -33,6 +33,53 @@ func main() {
 		return
 	}
 		
+
+	if *answer {
+
+		//Set up ChatGPT API
+		url := "https://api.openai.com/v1/chat/completions"
+
+		//Define ChatGPT call
+		body := map[string]interface{}{
+			"model": "gpt-4",
+			"messages": []map[string]string{
+				{
+					"role":    "user",
+					"content": fmt.Sprintf("I have this error: %s. How can I solve it?", *query),
+				},
+			},
+		}
+
+		//Send call and parse ChatGPT response
+		jsonBody, _ := json.Marshal(body)
+		req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
+		req.Header = http.Header{
+			"Content-Type":  {"application/json"},
+			"Authorization": {"Bearer " + os.Getenv("OPENAI_KEY")},
+		}
+		client := &http.Client{}
+		res, _ := client.Do(req)
+		defer res.Body.Close()
+		resBody, err := io.ReadAll(res.Body)
+		if err != nil {
+			fmt.Printf("Impossible to read OPENAI response: %s", err)
+		}
+		var responseBody map[string]interface{}
+		_ = json.Unmarshal(resBody, &responseBody)
+
+		choices := responseBody["choices"].([]interface{})
+		if len(choices) > 0 {
+			message := choices[0].(map[string]interface{})["message"].(map[string]interface{})
+			content := message["content"].(string)
+			video_topic = content
+		}
+
+		fmt.Printf("Search Query: %s", video_topic)
+		
+
+
+
+	}
 	if *video {
 
 		//Set up ChatGPT API
