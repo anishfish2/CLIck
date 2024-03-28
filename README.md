@@ -13,13 +13,13 @@ This is a simple tool that helps you find YouTube videos based on your questions
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/youtube-helper.git
+   git clone https://github.com/anishfish2/CLIck.git
    ```
 
 2. Navigate to the project directory:
 
    ```bash
-   cd youtube-helper
+   cd CLIck
    ```
 
 3. Install dependencies:
@@ -58,6 +58,4 @@ go run main.go -query="How do I fix a segmentation fault?" -video=true
 2. If the `-video` flag is set to true, the program then uses the YouTube Data API to search for a video related to the generated search query.
 3. It retrieves the video URL and plays the video using `mpv`.
 
-## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

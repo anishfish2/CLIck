@@ -20,7 +20,7 @@ func main() {
 
 	//Define Flags
 	query := flag.String("query", "Code broken :( y?", "The error you are facing.")
-	answer := flag.Bool("ask", true, "Whether to ask ChatGPT for help.")
+	ask := flag.Bool("ask", true, "Whether to ask ChatGPT for help.")
 	video := flag.Bool("video", false, "Whether to display the video")
 	video_topic := ""
 
@@ -34,7 +34,7 @@ func main() {
 	}
 		
 
-	if *answer {
+	if *ask {
 
 		//Set up ChatGPT API
 		url := "https://api.openai.com/v1/chat/completions"
